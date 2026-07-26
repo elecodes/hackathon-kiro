@@ -33,6 +33,24 @@ export const TechSteeringSchema = z.object({
   architecturePattern: z.enum(["Clean", "Hexagonal"]),
   solidBoundaries: z.array(SolidBoundarySchema).min(1),
   securityGuards: z.array(SecurityGuardSchema).min(1),
+  deploymentRegion: z.string().min(1),
+  dataStorageRegion: z.string().min(1),
+});
+
+export const AuthConfigSchema = z.object({
+  provider: z.string().min(1),
+  loginMethods: z.array(z.string().min(1)).min(1),
+  mfa: z.boolean(),
+  sessionLifetimeMinutes: z.number().positive(),
+  authorizationModel: z.enum(["RBAC", "ABAC", "ReBAC"]),
+});
+
+export const AiConfigSchema = z.object({
+  model: z.string().min(1),
+  provider: z.string().min(1),
+  region: z.string().min(1),
+  personalDataInPrompts: z.boolean(),
+  promptLogging: z.boolean(),
 });
 
 export const EntityPropertySchema = z.object({
@@ -83,4 +101,6 @@ export const Agent2OutputSchema = z.object({
   requirements: z.string().min(1),
   design: DesignSchema,
   tasks: z.array(TaskItemSchema).min(1),
+  authConfig: AuthConfigSchema,
+  aiConfig: AiConfigSchema,
 });

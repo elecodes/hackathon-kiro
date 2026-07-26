@@ -30,6 +30,28 @@ const techSteeringArb = fc.record({
   architecturePattern: fc.constantFrom("Clean" as const, "Hexagonal" as const),
   solidBoundaries: fc.array(solidBoundaryArb, { minLength: 1, maxLength: 3 }),
   securityGuards: fc.array(securityGuardArb, { minLength: 1, maxLength: 3 }),
+  deploymentRegion: nonEmptyString,
+  dataStorageRegion: nonEmptyString,
+});
+
+const authConfigArb = fc.record({
+  provider: nonEmptyString,
+  loginMethods: fc.array(nonEmptyString, { minLength: 1, maxLength: 3 }),
+  mfa: fc.boolean(),
+  sessionLifetimeMinutes: fc.integer({ min: 1, max: 10080 }),
+  authorizationModel: fc.constantFrom(
+    "RBAC" as const,
+    "ABAC" as const,
+    "ReBAC" as const,
+  ),
+});
+
+const aiConfigArb = fc.record({
+  model: nonEmptyString,
+  provider: nonEmptyString,
+  region: nonEmptyString,
+  personalDataInPrompts: fc.boolean(),
+  promptLogging: fc.boolean(),
 });
 
 const entityPropertyArb = fc.record({
@@ -80,6 +102,8 @@ const validAgent2OutputArb: fc.Arbitrary<Agent2Output> = fc.record({
   requirements: nonEmptyString,
   design: designArb,
   tasks: fc.array(taskItemArb, { minLength: 1, maxLength: 5 }),
+  authConfig: authConfigArb,
+  aiConfig: aiConfigArb,
 });
 
 // --- Cleanup tracking ---

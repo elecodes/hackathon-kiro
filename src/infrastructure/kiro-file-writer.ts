@@ -6,6 +6,8 @@ import {
   TechSteering,
   DesignOutput,
   TaskItem,
+  AuthConfig,
+  AiConfig,
 } from "../domain/types";
 import { FileWriterPort } from "../application/generate-architecture-spec";
 import { FilesystemError } from "../domain/errors";
@@ -39,7 +41,11 @@ export class KiroFileWriter implements FileWriterPort {
     return [
       {
         relativePath: "steering/tech.md",
-        content: this.formatTechSteering(output.techSteering),
+        content: this.formatTechSteering(
+          output.techSteering,
+          output.authConfig,
+          output.aiConfig,
+        ),
       },
       {
         relativePath: "specs/requirements.md",
@@ -56,7 +62,11 @@ export class KiroFileWriter implements FileWriterPort {
     ];
   }
 
-  private formatTechSteering(steering: TechSteering): string {
+  private formatTechSteering(
+    steering: TechSteering,
+    authConfig: AuthConfig,
+    aiConfig: AiConfig,
+  ): string {
     const lines: string[] = [];
 
     lines.push("## Stack Selection");
@@ -69,6 +79,12 @@ export class KiroFileWriter implements FileWriterPort {
     lines.push("## Architecture Pattern");
     lines.push("");
     lines.push(steering.architecturePattern);
+    lines.push("");
+
+    lines.push("## Deployment Geography");
+    lines.push("");
+    lines.push(`- Deployment Region: ${steering.deploymentRegion}`);
+    lines.push(`- Data Storage Region: ${steering.dataStorageRegion}`);
     lines.push("");
 
     lines.push("## SOLID Boundaries");
@@ -91,6 +107,30 @@ export class KiroFileWriter implements FileWriterPort {
         `| ${guard.name} | ${guard.description} | ${guard.enforcement} |`,
       );
     }
+    lines.push("");
+
+    lines.push("## Authentication & Authorization");
+    lines.push("");
+    lines.push(`- Provider: ${authConfig.provider}`);
+    lines.push(`- Login Methods: ${authConfig.loginMethods.join(", ")}`);
+    lines.push(`- MFA: ${authConfig.mfa ? "Enabled" : "Disabled"}`);
+    lines.push(
+      `- Session Lifetime: ${authConfig.sessionLifetimeMinutes} minutes`,
+    );
+    lines.push(`- Authorization Model: ${authConfig.authorizationModel}`);
+    lines.push("");
+
+    lines.push("## AI Configuration");
+    lines.push("");
+    lines.push(`- Model: ${aiConfig.model}`);
+    lines.push(`- Provider: ${aiConfig.provider}`);
+    lines.push(`- Region: ${aiConfig.region}`);
+    lines.push(
+      `- Personal Data in Prompts: ${aiConfig.personalDataInPrompts ? "Yes" : "No"}`,
+    );
+    lines.push(
+      `- Prompt Logging: ${aiConfig.promptLogging ? "Enabled" : "Disabled"}`,
+    );
     lines.push("");
 
     return lines.join("\n");

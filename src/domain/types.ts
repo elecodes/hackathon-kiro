@@ -32,6 +32,24 @@ export interface TechSteering {
   architecturePattern: "Clean" | "Hexagonal";
   solidBoundaries: SolidBoundary[];
   securityGuards: SecurityGuard[];
+  deploymentRegion: string;
+  dataStorageRegion: string;
+}
+
+export interface AuthConfig {
+  provider: string;
+  loginMethods: string[];
+  mfa: boolean;
+  sessionLifetimeMinutes: number;
+  authorizationModel: "RBAC" | "ABAC" | "ReBAC";
+}
+
+export interface AiConfig {
+  model: string;
+  provider: string;
+  region: string;
+  personalDataInPrompts: boolean;
+  promptLogging: boolean;
 }
 
 export interface EntityProperty {
@@ -82,6 +100,8 @@ export interface Agent2Output {
   requirements: string;
   design: DesignOutput;
   tasks: TaskItem[];
+  authConfig: AuthConfig;
+  aiConfig: AiConfig;
 }
 
 export interface GenerateSpecOptions {

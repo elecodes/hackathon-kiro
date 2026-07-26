@@ -43,6 +43,8 @@ const validTechSteering = {
       enforcement: "Middleware",
     },
   ],
+  deploymentRegion: "us-east-1",
+  dataStorageRegion: "eu-west-1",
 };
 
 const validDesign = {
@@ -88,6 +90,20 @@ const validAgent2Output = {
   requirements: "WHEN user logs in, THE system SHALL authenticate credentials",
   design: validDesign,
   tasks: validTasks,
+  authConfig: {
+    provider: "NextAuth.js",
+    loginMethods: ["email/password", "Google OAuth"],
+    mfa: true,
+    sessionLifetimeMinutes: 1440,
+    authorizationModel: "RBAC" as const,
+  },
+  aiConfig: {
+    model: "gpt-4o",
+    provider: "OpenAI",
+    region: "us-east-1",
+    personalDataInPrompts: false,
+    promptLogging: true,
+  },
 };
 
 // --- Tests ---

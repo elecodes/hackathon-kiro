@@ -45,6 +45,8 @@ const validAgent2Output: Agent2Output = {
         enforcement: "Middleware",
       },
     ],
+    deploymentRegion: "us-east-1",
+    dataStorageRegion: "us-east-1",
   },
   requirements: "WHEN user logs in, THE system SHALL authenticate credentials",
   design: {
@@ -77,6 +79,20 @@ const validAgent2Output: Agent2Output = {
       dependencies: [],
     },
   ],
+  authConfig: {
+    provider: "NextAuth.js",
+    loginMethods: ["email/password"],
+    mfa: false,
+    sessionLifetimeMinutes: 60,
+    authorizationModel: "RBAC",
+  },
+  aiConfig: {
+    model: "gpt-4o",
+    provider: "OpenAI",
+    region: "us-east-1",
+    personalDataInPrompts: false,
+    promptLogging: true,
+  },
 };
 
 // --- Mock factories ---

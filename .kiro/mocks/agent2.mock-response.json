@@ -59,7 +59,9 @@
         "description": "All traffic encrypted in transit via TLS",
         "enforcement": "Infrastructure/CDN layer"
       }
-    ]
+    ],
+    "deploymentRegion": "us-east-1",
+    "dataStorageRegion": "eu-west-1"
   },
   "requirements": "# Functional Requirements — KiroSpec Studio\n\n## REQ-1: Specification Generation\n\nWHEN a user submits a product vision document, THE system SHALL generate a complete architecture specification within 60 seconds.\n\n## REQ-2: EARS Syntax Output\n\nWHEN the system generates requirements, THE system SHALL format all requirements strictly in EARS syntax using WHEN/WHILE/WHERE/IF/THE/SHALL clause patterns.\n\n## REQ-3: Mock Fallback\n\nWHEN Agent 2 is invoked without Agent 1 output, THE system SHALL load the fallback mock from .kiro/mocks/agent1.mock.json and proceed with specification generation.\n\n## REQ-4: Schema Validation\n\nWHEN the LLM produces output, THE Zod Validator SHALL validate the response against Agent2OutputSchema before persisting to disk.\n\nIF the LLM output fails schema validation, THEN THE system SHALL throw a typed ValidationError containing the field path and expected type.\n\n## REQ-5: File Persistence\n\nWHEN the system produces a valid Agent2Output, THE Kiro File Writer SHALL write four files: steering/tech.md, specs/requirements.md, specs/design.md, and specs/tasks.md.\n\nWHEN a target directory does not exist, THE Kiro File Writer SHALL create the directory structure before writing files.\n\n## REQ-6: Cost Estimation\n\nWHEN generating the design document, THE system SHALL include an AWS cost breakdown with separate MVP and Scale projections itemized by service name and monthly cost in USD.\n\n## REQ-7: Sequential Task Dependencies\n\nWHEN generating the task list, THE system SHALL produce tasks ordered sequentially where each task's dependencies reference only previously listed task IDs.",
   "design": {
@@ -200,5 +202,19 @@
       "description": "Write property-based tests (fast-check, 100+ iterations) for all 6 correctness properties, unit tests for all layers, and integration tests for the full pipeline.",
       "dependencies": ["task-5"]
     }
-  ]
+  ],
+  "authConfig": {
+    "provider": "NextAuth.js + Cognito",
+    "loginMethods": ["email/password", "Google OAuth", "GitHub OAuth"],
+    "mfa": true,
+    "sessionLifetimeMinutes": 1440,
+    "authorizationModel": "RBAC"
+  },
+  "aiConfig": {
+    "model": "gpt-4o",
+    "provider": "OpenAI",
+    "region": "us-east-1",
+    "personalDataInPrompts": false,
+    "promptLogging": true
+  }
 }

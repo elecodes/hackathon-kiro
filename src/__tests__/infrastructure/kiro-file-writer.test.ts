@@ -32,6 +32,8 @@ const validOutput: Agent2Output = {
         enforcement: "Middleware",
       },
     ],
+    deploymentRegion: "us-east-1",
+    dataStorageRegion: "eu-west-1",
   },
   requirements: "WHEN user logs in, THE system SHALL authenticate credentials",
   design: {
@@ -70,6 +72,20 @@ const validOutput: Agent2Output = {
       dependencies: ["task-1"],
     },
   ],
+  authConfig: {
+    provider: "NextAuth.js",
+    loginMethods: ["email/password", "Google OAuth"],
+    mfa: true,
+    sessionLifetimeMinutes: 1440,
+    authorizationModel: "RBAC",
+  },
+  aiConfig: {
+    model: "gpt-4o",
+    provider: "OpenAI",
+    region: "us-east-1",
+    personalDataInPrompts: false,
+    promptLogging: true,
+  },
 };
 
 let tempDir: string;

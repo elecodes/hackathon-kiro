@@ -47,6 +47,8 @@ const VALID_AGENT2_OUTPUT: Agent2Output = {
         enforcement: "Middleware",
       },
     ],
+    deploymentRegion: "us-east-1",
+    dataStorageRegion: "us-east-1",
   },
   requirements:
     "WHEN the user submits a form, THE system SHALL validate all fields",
@@ -90,6 +92,20 @@ const VALID_AGENT2_OUTPUT: Agent2Output = {
       dependencies: ["task-1"],
     },
   ],
+  authConfig: {
+    provider: "NextAuth.js",
+    loginMethods: ["email/password"],
+    mfa: false,
+    sessionLifetimeMinutes: 60,
+    authorizationModel: "RBAC",
+  },
+  aiConfig: {
+    model: "gpt-4o",
+    provider: "OpenAI",
+    region: "us-east-1",
+    personalDataInPrompts: false,
+    promptLogging: true,
+  },
 };
 
 class MockLlm implements LlmPort {

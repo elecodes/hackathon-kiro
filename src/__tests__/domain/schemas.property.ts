@@ -25,6 +25,8 @@ const techSteeringArb = fc.record({
   architecturePattern: fc.constantFrom("Clean" as const, "Hexagonal" as const),
   solidBoundaries: fc.array(solidBoundaryArb, { minLength: 1, maxLength: 3 }),
   securityGuards: fc.array(securityGuardArb, { minLength: 1, maxLength: 3 }),
+  deploymentRegion: nonEmptyString,
+  dataStorageRegion: nonEmptyString,
 });
 
 const entityPropertyArb = fc.record({
@@ -90,6 +92,20 @@ const validAgent2OutputArb = fc
     requirements,
     design,
     tasks,
+    authConfig: {
+      provider: "NextAuth.js",
+      loginMethods: ["email/password"],
+      mfa: true,
+      sessionLifetimeMinutes: 1440,
+      authorizationModel: "RBAC" as const,
+    },
+    aiConfig: {
+      model: "gpt-4o",
+      provider: "OpenAI",
+      region: "us-east-1",
+      personalDataInPrompts: false,
+      promptLogging: true,
+    },
   }));
 
 // --- Property 1: Schema validation rejects invalid objects with correct error paths ---
