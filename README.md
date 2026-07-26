@@ -26,12 +26,12 @@ Agent 4 (DevSecOps & Automation)
 
 ## What It Produces
 
-| File                          | Content                                                                                 |
-| ----------------------------- | --------------------------------------------------------------------------------------- |
-| `.kiro/steering/tech.md`      | Stack selection, Clean Architecture boundaries, SOLID rules, security policies          |
-| `.kiro/specs/requirements.md` | Functional requirements in EARS syntax (WHEN/SHALL patterns)                            |
-| `.kiro/specs/design.md`       | DDD entities, Mermaid sequence diagram, IAM policies, AWS cost breakdown (MVP vs Scale) |
-| `.kiro/specs/tasks.md`        | Sequential task list with dependency ordering                                           |
+| File                          | Content                                                                                                                      |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `.kiro/steering/tech.md`      | Stack selection, Clean Architecture boundaries, SOLID rules, security policies, deployment geography, auth config, AI config |
+| `.kiro/specs/requirements.md` | Functional requirements in EARS syntax (WHEN/SHALL patterns)                                                                 |
+| `.kiro/specs/design.md`       | DDD entities, Mermaid sequence diagram, IAM policies, AWS cost breakdown (MVP vs Scale)                                      |
+| `.kiro/specs/tasks.md`        | Sequential task list with dependency ordering                                                                                |
 
 ## Quick Start
 
@@ -161,6 +161,8 @@ interface Agent2Output {
     architecturePattern: "Clean" | "Hexagonal";
     solidBoundaries: { principle: string; rule: string; layer: string }[];
     securityGuards: { name: string; description: string; enforcement: string }[];
+    deploymentRegion: string;       // e.g. "us-east-1"
+    dataStorageRegion: string;      // e.g. "eu-west-1"
   };
   requirements: string;  // EARS-formatted markdown
   design: {
@@ -173,6 +175,20 @@ interface Agent2Output {
     };
   };
   tasks: { id: string; title: string; description: string; dependencies: string[] }[];
+  authConfig: {
+    provider: string;               // e.g. "NextAuth.js + Cognito"
+    loginMethods: string[];         // e.g. ["email/password", "Google OAuth"]
+    mfa: boolean;
+    sessionLifetimeMinutes: number;
+    authorizationModel: "RBAC" | "ABAC" | "ReBAC";
+  };
+  aiConfig: {
+    model: string;                  // e.g. "gpt-4o"
+    provider: string;               // e.g. "OpenAI"
+    region: string;                 // e.g. "us-east-1"
+    personalDataInPrompts: boolean;
+    promptLogging: boolean;
+  };
 }
 ```
 
