@@ -30,10 +30,13 @@ export async function runPipeline(): Promise<PipelineResult> {
   try {
     const outputs: PipelineOutputs = {
       product: await readFileOrMock(".kiro/steering/product.md", MOCK_PRODUCT),
-      tech: await readFileOrMock(".kiro/steering/tech.md", ""),
-      requirements: await readFileOrMock(".kiro/specs/requirements.md", ""),
-      design: await readFileOrMock(".kiro/specs/design.md", ""),
-      tasks: await readFileOrMock(".kiro/specs/tasks.md", ""),
+      tech: await readFileOrMock(".kiro/steering/tech.md", MOCK_TECH),
+      requirements: await readFileOrMock(
+        ".kiro/specs/requirements.md",
+        MOCK_REQUIREMENTS,
+      ),
+      design: await readFileOrMock(".kiro/specs/design.md", MOCK_DESIGN),
+      tasks: await readFileOrMock(".kiro/specs/tasks.md", MOCK_TASKS),
       compliance: await readFileOrMock(
         ".kiro/specs/compliance.md",
         MOCK_COMPLIANCE,
@@ -51,6 +54,201 @@ export async function runPipeline(): Promise<PipelineResult> {
 }
 
 // --- Fallback mocks for agents that may not have generated files yet ---
+
+const MOCK_TECH = `## Stack Selection
+
+- Next.js 15 (App Router)
+- TypeScript 5.x
+- Node.js 22 LTS
+- Vercel AI SDK
+- Zod
+- PostgreSQL
+- Docker
+- Terraform
+
+## Architecture Pattern
+
+Clean
+
+## Deployment Geography
+
+- Deployment Region: us-east-1
+- Data Storage Region: eu-west-1
+
+## SOLID Boundaries
+
+| Principle | Rule | Layer |
+| --- | --- | --- |
+| Single Responsibility | Each module has exactly one reason to change | Domain |
+| Open/Closed | Extend via new implementations of port interfaces | Application |
+| Liskov Substitution | All LlmPort implementations must be interchangeable | Infrastructure |
+| Interface Segregation | Port interfaces define only the methods the use case needs | Application |
+| Dependency Inversion | Application layer depends on port abstractions, not concrete infrastructure | Application |
+
+## Security Policies
+
+| Name | Description | Enforcement |
+| --- | --- | --- |
+| Zod Input Validation | All external inputs validated against strict Zod schemas | Middleware + Use Case entry |
+| JWT Authentication | Bearer token validation for API route access | Next.js middleware |
+| CORS Policy | Restrict cross-origin requests to allowed domains only | Next.js config + headers |
+| HTTPS Enforcement | All traffic encrypted in transit via TLS | Infrastructure/CDN layer |
+
+## Authentication & Authorization
+
+- Provider: NextAuth.js + Cognito
+- Login Methods: email/password, Google OAuth, GitHub OAuth
+- MFA: Enabled
+- Session Lifetime: 1440 minutes
+- Authorization Model: RBAC
+
+## AI Configuration
+
+- Model: gpt-4o
+- Provider: OpenAI
+- Region: us-east-1
+- Personal Data in Prompts: No
+- Prompt Logging: Enabled
+`;
+
+const MOCK_REQUIREMENTS = `# Functional Requirements — KiroSpec Studio
+
+## REQ-1: Specification Generation
+
+WHEN a user submits a product vision document, THE system SHALL generate a complete architecture specification within 60 seconds.
+
+## REQ-2: EARS Syntax Output
+
+WHEN the system generates requirements, THE system SHALL format all requirements strictly in EARS syntax using WHEN/WHILE/WHERE/IF/THE/SHALL clause patterns.
+
+## REQ-3: Mock Fallback
+
+WHEN Agent 2 is invoked without Agent 1 output, THE system SHALL load the fallback mock from .kiro/mocks/agent1.mock.json and proceed with specification generation.
+
+## REQ-4: Schema Validation
+
+WHEN the LLM produces output, THE Zod Validator SHALL validate the response against Agent2OutputSchema before persisting to disk.
+
+IF the LLM output fails schema validation, THEN THE system SHALL throw a typed ValidationError containing the field path and expected type.
+
+## REQ-5: File Persistence
+
+WHEN the system produces a valid Agent2Output, THE Kiro File Writer SHALL write four files: steering/tech.md, specs/requirements.md, specs/design.md, and specs/tasks.md.
+
+WHEN a target directory does not exist, THE Kiro File Writer SHALL create the directory structure before writing files.
+
+## REQ-6: Cost Estimation
+
+WHEN generating the design document, THE system SHALL include an AWS cost breakdown with separate MVP and Scale projections itemized by service name and monthly cost in USD.
+
+## REQ-7: Sequential Task Dependencies
+
+WHEN generating the task list, THE system SHALL produce tasks ordered sequentially where each task's dependencies reference only previously listed task IDs.
+`;
+
+const MOCK_DESIGN = `## Domain Entities
+
+### Agent1Output
+
+Properties:
+- projectName: string (required)
+- productVision: string (required)
+- targetAudience: string (required)
+- valueProposition: string (required)
+- mvpFeatures: string[] (required)
+- expectedMetrics: ExpectedMetrics (required)
+
+Relationships: consumed by Agent2
+
+### Agent2Output
+
+Properties:
+- techSteering: TechSteering (required)
+- requirements: string (required)
+- design: DesignOutput (required)
+- tasks: TaskItem[] (required)
+
+Relationships: persisted by KiroFileWriter
+
+## Sequence Diagram
+
+\`\`\`mermaid
+sequenceDiagram
+    participant Client as API Client
+    participant Route as POST /api/generate-spec
+    participant UC as GenerateArchitectureSpec
+    participant Mock as JsonMockLoader
+    participant Val as Zod Validator
+    participant LLM as LLM Client
+    participant FW as KiroFileWriter
+
+    Client->>Route: POST { agent1Output?, preferredStack? }
+    Route->>UC: execute(options)
+    alt No agent1Output
+        UC->>Mock: load()
+        Mock->>Val: Agent1OutputSchema.safeParse()
+        Val-->>UC: validated
+    end
+    UC->>LLM: invoke(systemPrompt, userPrompt)
+    LLM-->>UC: raw response
+    UC->>Val: Agent2OutputSchema.safeParse(response)
+    Val-->>UC: validated Agent2Output
+    UC->>FW: writeAll(output, .kiro)
+    FW-->>UC: void
+    UC-->>Route: Agent2Output
+    Route-->>Client: 200 JSON
+\`\`\`
+
+## IAM Policies
+
+| Service | Actions | Resource | Effect |
+| --- | --- | --- | --- |
+| Lambda | lambda:InvokeFunction | arn:aws:lambda:us-east-1:*:function:kirospec-* | Allow |
+| S3 | s3:GetObject, s3:PutObject | arn:aws:s3:::kirospec-specs/* | Allow |
+| CloudWatch | logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents | arn:aws:logs:us-east-1:*:log-group:/aws/lambda/kirospec-* | Allow |
+
+## AWS Cost Projection
+
+### MVP
+
+| Service | Monthly Cost (USD) |
+| --- | --- |
+| Vercel Pro (hosting + edge) | $20.00 |
+| OpenAI API (GPT-4o, ~500 calls) | $15.00 |
+| Vercel Postgres (starter) | $0.00 |
+| CloudWatch Logs | $2.00 |
+
+### Scale
+
+| Service | Monthly Cost (USD) |
+| --- | --- |
+| Vercel Enterprise (hosting + edge) | $150.00 |
+| OpenAI API (GPT-4o, ~50k calls) | $1500.00 |
+| Vercel Postgres (pro) | $50.00 |
+| CloudWatch Logs + Alarms | $25.00 |
+| WAF + Shield | $30.00 |
+`;
+
+const MOCK_TASKS = `## Tasks
+
+1. **task-1**: Project scaffolding
+   Initialize Next.js project with TypeScript, Zod, Vercel AI SDK, and Vitest. Configure path aliases and test patterns.
+
+2. **task-2**: Domain layer implementation (depends on: task-1)
+   Create types.ts with all interfaces, schemas.ts with Zod validation, and errors.ts with typed error hierarchy.
+
+3. **task-3**: Application layer implementation (depends on: task-2)
+   Create GenerateArchitectureSpec use case with port interfaces, input/output validation pipeline, and error classification.
+
+4. **task-4**: Infrastructure adapters (depends on: task-3)
+   Implement JsonMockLoader, LLM client adapter (Vercel AI SDK), and KiroFileWriter with markdown formatters.
+
+5. **task-5**: API route and mock data (depends on: task-4)
+   Create Next.js App Router POST endpoint at /api/generate-spec and the agent1.mock.json fallback file.
+
+6. **task-6**: Testing and verification (depends on: task-5)
+   Write property-based tests (fast-check, 100+ iterations) for all 6 correctness properties, unit tests for all layers, and integration tests for the full pipeline.
+`;
 
 const MOCK_PRODUCT = `# Product Strategy — KiroSpec Studio
 
