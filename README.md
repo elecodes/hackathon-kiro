@@ -1,5 +1,7 @@
 # KiroSpec Studio — Agent 2: Software Architect, Security & Financial Officer
 
+**Live Demo:** [hackathon-kiro-git-main-eles-projects-439745b9.vercel.app](https://hackathon-kiro-git-main-eles-projects-439745b9.vercel.app/)
+
 ## What Is This
 
 Agent 2 is an AI-powered service that transforms a product vision into complete, validated architecture documentation. It receives structured input from Agent 1 (Product Manager) and generates four specification files ready for implementation.
