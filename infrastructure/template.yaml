@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: KiroSpec Studio - Agent 2 Lambda + API Gateway
+Description: KiroSpec Studio - Agent 2 Lambda + API Gateway + DynamoDB
 
 Globals:
   Function:
@@ -12,8 +12,29 @@ Globals:
     Environment:
       Variables:
         NODE_ENV: production
+        SPECS_TABLE: !Ref SpecsTable
 
 Resources:
+  # DynamoDB Table for persisting generated specs
+  SpecsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: kirospec-specs
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
   # API Gateway (REST)
   KiroSpecApi:
     Type: AWS::Serverless::Api
@@ -21,7 +42,7 @@ Resources:
       StageName: prod
       Description: KiroSpec Studio API
       Cors:
-        AllowMethods: "'POST,OPTIONS'"
+        AllowMethods: "'POST,GET,OPTIONS'"
         AllowHeaders: "'Content-Type'"
         AllowOrigin: "'*'"
 
@@ -39,8 +60,16 @@ Resources:
             Path: /generate-spec
             Method: POST
             RestApiId: !Ref KiroSpecApi
+        GetSpec:
+          Type: Api
+          Properties:
+            Path: /specs/{specId}
+            Method: GET
+            RestApiId: !Ref KiroSpecApi
       Policies:
         - CloudWatchLogsFullAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SpecsTable
 
 Outputs:
   ApiUrl:
@@ -49,3 +78,6 @@ Outputs:
   Agent2FunctionArn:
     Description: Agent 2 Lambda function ARN
     Value: !GetAtt Agent2Function.Arn
+  SpecsTableName:
+    Description: DynamoDB table name
+    Value: !Ref SpecsTable
