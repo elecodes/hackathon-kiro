@@ -9,4 +9,31 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["Agent2Function"]
 
+[function_build_definitions.354092e1-fb3f-4cf5-82c6-b34691d6e7d3]
+codeuri = "/Users/elena/hackathon-kiro/infrastructure/lambda/agent1-placeholder"
+runtime = "nodejs22.x"
+architecture = "arm64"
+handler = "index.handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["Agent1Function"]
+
+[function_build_definitions.fa4dab3f-08a6-4c37-9f4a-466a2a9dae8e]
+codeuri = "/Users/elena/hackathon-kiro/infrastructure/lambda/agent3-placeholder"
+runtime = "nodejs22.x"
+architecture = "arm64"
+handler = "index.handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["Agent3Function"]
+
+[function_build_definitions.29a6e1db-7107-4e2b-94c2-d1d61a13fc64]
+codeuri = "/Users/elena/hackathon-kiro/infrastructure/lambda/agent4-placeholder"
+runtime = "nodejs22.x"
+architecture = "arm64"
+handler = "index.handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["Agent4Function"]
+
 [layer_build_definitions]

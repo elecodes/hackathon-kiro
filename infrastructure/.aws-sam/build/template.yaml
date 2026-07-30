@@ -67,8 +67,101 @@ Resources:
       - DynamoDBCrudPolicy:
           TableName:
             Ref: SpecsTable
+      - EventBridgePutEventsPolicy:
+          EventBusName:
+            Ref: KiroSpecEventBus
     Metadata:
       SamResourceId: Agent2Function
+  KiroSpecEventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: kirospec-pipeline
+  Agent2CompletedRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventBusName:
+        Ref: KiroSpecEventBus
+      EventPattern:
+        source:
+        - kirospec.agent2
+        detail-type:
+        - SpecGenerated
+      Targets:
+      - Id: LogAgent2Events
+        Arn:
+          Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/events/kirospec-agent2-completed
+  Agent2EventsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/events/kirospec-agent2-completed
+      RetentionInDays: 7
+  Agent1Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: Agent1Function
+      Description: Agent 1 - PM & Market Strategist (placeholder)
+    Metadata:
+      SamResourceId: Agent1Function
+  Agent3Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: Agent3Function
+      Description: Agent 3 - Legal & Compliance (placeholder)
+    Metadata:
+      SamResourceId: Agent3Function
+  Agent4Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: Agent4Function
+      Description: Agent 4 - DevSecOps & Automation (placeholder)
+    Metadata:
+      SamResourceId: Agent4Function
+  KiroSpecPipeline:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: kirospec-pipeline
+      DefinitionUri: ../../statemachine/pipeline.asl.json
+      DefinitionSubstitutions:
+        Agent1FunctionArn:
+          Fn::GetAtt:
+          - Agent1Function
+          - Arn
+        Agent2FunctionArn:
+          Fn::GetAtt:
+          - Agent2Function
+          - Arn
+        Agent3FunctionArn:
+          Fn::GetAtt:
+          - Agent3Function
+          - Arn
+        Agent4FunctionArn:
+          Fn::GetAtt:
+          - Agent4Function
+          - Arn
+      Policies:
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: Agent1Function
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: Agent2Function
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: Agent3Function
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: Agent4Function
+      Events:
+        ApiTrigger:
+          Type: Api
+          Properties:
+            Path: /run-pipeline
+            Method: POST
+            RestApiId:
+              Ref: KiroSpecApi
 Outputs:
   ApiUrl:
     Description: API Gateway endpoint URL
@@ -84,3 +177,11 @@ Outputs:
     Description: DynamoDB table name
     Value:
       Ref: SpecsTable
+  EventBusName:
+    Description: EventBridge bus for inter-agent communication
+    Value:
+      Ref: KiroSpecEventBus
+  PipelineStateMachineArn:
+    Description: Step Functions state machine ARN
+    Value:
+      Ref: KiroSpecPipeline

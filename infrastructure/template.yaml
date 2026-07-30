@@ -100,6 +100,58 @@ Resources:
       LogGroupName: /aws/events/kirospec-agent2-completed
       RetentionInDays: 7
 
+  # Agent 1 Placeholder Lambda
+  Agent1Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: lambda/agent1-placeholder/
+      Description: Agent 1 - PM & Market Strategist (placeholder)
+
+  # Agent 3 Placeholder Lambda
+  Agent3Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: lambda/agent3-placeholder/
+      Description: Agent 3 - Legal & Compliance (placeholder)
+
+  # Agent 4 Placeholder Lambda
+  Agent4Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: lambda/agent4-placeholder/
+      Description: Agent 4 - DevSecOps & Automation (placeholder)
+
+  # Step Functions State Machine — orchestrates all 4 agents
+  KiroSpecPipeline:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: kirospec-pipeline
+      DefinitionUri: statemachine/pipeline.asl.json
+      DefinitionSubstitutions:
+        Agent1FunctionArn: !GetAtt Agent1Function.Arn
+        Agent2FunctionArn: !GetAtt Agent2Function.Arn
+        Agent3FunctionArn: !GetAtt Agent3Function.Arn
+        Agent4FunctionArn: !GetAtt Agent4Function.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Agent1Function
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Agent2Function
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Agent3Function
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Agent4Function
+      Events:
+        ApiTrigger:
+          Type: Api
+          Properties:
+            Path: /run-pipeline
+            Method: POST
+            RestApiId: !Ref KiroSpecApi
+
 Outputs:
   ApiUrl:
     Description: API Gateway endpoint URL
@@ -113,3 +165,6 @@ Outputs:
   EventBusName:
     Description: EventBridge bus for inter-agent communication
     Value: !Ref KiroSpecEventBus
+  PipelineStateMachineArn:
+    Description: Step Functions state machine ARN
+    Value: !Ref KiroSpecPipeline

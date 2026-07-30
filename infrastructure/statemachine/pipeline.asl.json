@@ -1,0 +1,117 @@
+{
+  "Comment": "KiroSpec Studio — 4-Agent Pipeline Orchestrator",
+  "StartAt": "Agent1-MarketAnalysis",
+  "States": {
+    "Agent1-MarketAnalysis": {
+      "Type": "Task",
+      "Resource": "${Agent1FunctionArn}",
+      "Comment": "PM & Market Strategist — validates idea, competitive analysis",
+      "ResultPath": "$.agent1Result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "PipelineFailed",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "Agent2-Architecture"
+    },
+    "Agent2-Architecture": {
+      "Type": "Task",
+      "Resource": "${Agent2FunctionArn}",
+      "Comment": "Software Architect — generates tech specs, requirements, design, tasks",
+      "InputPath": "$.agent1Result.output",
+      "ResultPath": "$.agent2Result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "PipelineFailed",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "Agent3-Compliance"
+    },
+    "Agent3-Compliance": {
+      "Type": "Task",
+      "Resource": "${Agent3FunctionArn}",
+      "Comment": "Legal & Compliance — licenses, GDPR, privacy audit",
+      "InputPath": "$.agent2Result",
+      "ResultPath": "$.agent3Result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "PipelineFailed",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "Agent4-DevSecOps"
+    },
+    "Agent4-DevSecOps": {
+      "Type": "Task",
+      "Resource": "${Agent4FunctionArn}",
+      "Comment": "DevSecOps — Docker, CI/CD, security hooks",
+      "ResultPath": "$.agent4Result",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "PipelineFailed",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "PipelineComplete"
+    },
+    "PipelineComplete": {
+      "Type": "Succeed",
+      "Comment": "All 4 agents completed successfully"
+    },
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Cause": "An agent in the pipeline failed",
+      "Error": "PipelineError"
+    }
+  }
+}
