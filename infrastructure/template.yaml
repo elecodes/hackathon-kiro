@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: KiroSpec Studio - Agent 2 Lambda + API Gateway
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    MemorySize: 256
+    Timeout: 30
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        NODE_ENV: production
+
+Resources:
+  # API Gateway (REST)
+  KiroSpecApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Description: KiroSpec Studio API
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type'"
+        AllowOrigin: "'*'"
+
+  # Agent 2 Lambda Function
+  Agent2Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: lambda/agent2/
+      Description: Agent 2 - Software Architect spec generator
+      Events:
+        GenerateSpec:
+          Type: Api
+          Properties:
+            Path: /generate-spec
+            Method: POST
+            RestApiId: !Ref KiroSpecApi
+      Policies:
+        - CloudWatchLogsFullAccess
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${KiroSpecApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+  Agent2FunctionArn:
+    Description: Agent 2 Lambda function ARN
+    Value: !GetAtt Agent2Function.Arn

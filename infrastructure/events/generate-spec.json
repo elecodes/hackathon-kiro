@@ -1,0 +1,9 @@
+{
+  "httpMethod": "POST",
+  "path": "/generate-spec",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": "{\"agent1Output\":{\"projectName\":\"MyApp\",\"productVision\":\"A todo app\",\"targetAudience\":\"Developers\",\"valueProposition\":\"Simple and fast\",\"mvpFeatures\":[\"Create tasks\",\"Mark complete\"],\"expectedMetrics\":{\"mvpMonthlyUsers\":100,\"scaleMonthlyUsers\":10000,\"peakConcurrentConnections\":50}},\"preferredStack\":[\"React\",\"Node.js\",\"DynamoDB\"]}",
+  "isBase64Encoded": false
+}

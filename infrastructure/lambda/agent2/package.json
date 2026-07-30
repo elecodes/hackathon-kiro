@@ -1,0 +1,9 @@
+{
+  "name": "kirospec-agent2-lambda",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "zod": "3.25.36"
+  }
+}
