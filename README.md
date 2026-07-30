@@ -6,6 +6,8 @@
 
 **📄 Agent 2 Technical Docs:** [docs/agent2-readme.md](./docs/agent2-readme.md)
 
+**☁️ AWS Infrastructure:** [docs/playbook.md](./docs/playbook.md) | [ADR-001](./docs/adr/001-aws-serverless-architecture.md) | [Free Tier Roadmap](./docs/aws-free-tier-roadmap.md)
+
 ## 📋 Overview
 
 KiroSpec Studio is an AI-agent-powered software specification tool. Through a guided conversational experience (Architect Wizard), the system takes an abstract software idea and automatically transforms it into a complete technical package inside a minimalist IDE-like environment (Workbench). It generates detailed specifications, architecture design, compliance matrices, and real DevSecOps artifacts with verified test suites.
@@ -233,3 +235,28 @@ npm run test:coverage # With coverage report
 - [@Cggtabares](https://github.com/Cggtabares) — Agent 3
 
 **Organization:** [hackathon-kiro](https://github.com/JonnyBP/hackathon-kiro)
+
+## ☁️ AWS Serverless Infrastructure
+
+The pipeline runs on AWS Free Tier with these services:
+
+```
+POST /generate-spec → Lambda (Agent 2) → DynamoDB + EventBridge
+POST /run-pipeline  → Step Functions → Agent 1 → 2 → 3 → 4
+```
+
+| Service        | Purpose                                |
+| -------------- | -------------------------------------- |
+| Lambda (x4)    | One function per agent                 |
+| API Gateway    | REST API endpoints                     |
+| DynamoDB       | Persist generated specs (TTL: 30 days) |
+| EventBridge    | Inter-agent event bus                  |
+| Step Functions | 4-agent pipeline orchestrator          |
+| CloudWatch     | Dashboard + alarms                     |
+| SNS            | Email alerts on failures               |
+
+**API Endpoint:** `https://0pc2iaxc58.execute-api.us-east-1.amazonaws.com/prod/`
+
+**Deploy:** `cd infrastructure && sam build && sam deploy`
+
+See [playbook.md](./docs/playbook.md) for full operations guide.
