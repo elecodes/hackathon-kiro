@@ -9,16 +9,10 @@ import {
   PutCommand,
   GetCommand,
 } from "@aws-sdk/lib-dynamodb";
-import {
-  EventBridgeClient,
-  PutEventsCommand,
-} from "@aws-sdk/client-eventbridge";
 
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
-const eventBridge = new EventBridgeClient({});
 const TABLE_NAME = process.env.SPECS_TABLE || "kirospec-specs";
-const EVENT_BUS = "kirospec-pipeline";
 
 const headers = {
   "Content-Type": "application/json",
@@ -95,25 +89,6 @@ async function handlePost(event) {
     }),
   );
 
-  // Emit event to EventBridge — triggers downstream agents (Agent 3, 4)
-  await eventBridge.send(
-    new PutEventsCommand({
-      Entries: [
-        {
-          EventBusName: EVENT_BUS,
-          Source: "kirospec.agent2",
-          DetailType: "SpecGenerated",
-          Detail: JSON.stringify({
-            specId,
-            agent: "agent-2-architect",
-            timestamp,
-            stack: result.techSteering.stack,
-          }),
-        },
-      ],
-    }),
-  );
-
   return {
     statusCode: 200,
     headers,
@@ -127,7 +102,6 @@ async function handlePost(event) {
         timestamp,
         input: agent1Output ? "provided" : "fallback-mock",
         persisted: true,
-        eventEmitted: true,
       },
     }),
   };

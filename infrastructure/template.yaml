@@ -70,6 +70,35 @@ Resources:
         - CloudWatchLogsFullAccess
         - DynamoDBCrudPolicy:
             TableName: !Ref SpecsTable
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref KiroSpecEventBus
+
+  # EventBridge Bus for inter-agent communication
+  KiroSpecEventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: kirospec-pipeline
+
+  # Rule: When Agent 2 completes, log to CloudWatch (placeholder for Agent 3 trigger)
+  Agent2CompletedRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventBusName: !Ref KiroSpecEventBus
+      EventPattern:
+        source:
+          - "kirospec.agent2"
+        detail-type:
+          - "SpecGenerated"
+      Targets:
+        - Id: LogAgent2Events
+          Arn: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/events/kirospec-agent2-completed"
+
+  # CloudWatch Log Group for EventBridge events
+  Agent2EventsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/events/kirospec-agent2-completed
+      RetentionInDays: 7
 
 Outputs:
   ApiUrl:
@@ -81,3 +110,6 @@ Outputs:
   SpecsTableName:
     Description: DynamoDB table name
     Value: !Ref SpecsTable
+  EventBusName:
+    Description: EventBridge bus for inter-agent communication
+    Value: !Ref KiroSpecEventBus
