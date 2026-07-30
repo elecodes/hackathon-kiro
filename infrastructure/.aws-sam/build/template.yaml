@@ -95,6 +95,84 @@ Resources:
     Properties:
       LogGroupName: /aws/events/kirospec-agent2-completed
       RetentionInDays: 7
+  KiroSpecDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: kirospec-studio
+      DashboardBody:
+        Fn::Sub: "{\n  \"widgets\": [\n    {\n      \"type\": \"metric\",\n      \"\
+          x\": 0, \"y\": 0, \"width\": 12, \"height\": 6,\n      \"properties\": {\n\
+          \        \"title\": \"Pipeline Executions\",\n        \"metrics\": [\n \
+          \         [\"AWS/States\", \"ExecutionsStarted\", \"StateMachineArn\", \"\
+          ${KiroSpecPipeline}\"],\n          [\"AWS/States\", \"ExecutionsSucceeded\"\
+          , \"StateMachineArn\", \"${KiroSpecPipeline}\"],\n          [\"AWS/States\"\
+          , \"ExecutionsFailed\", \"StateMachineArn\", \"${KiroSpecPipeline}\"]\n\
+          \        ],\n        \"region\": \"${AWS::Region}\",\n        \"period\"\
+          : 300\n      }\n    },\n    {\n      \"type\": \"metric\",\n      \"x\"\
+          : 12, \"y\": 0, \"width\": 12, \"height\": 6,\n      \"properties\": {\n\
+          \        \"title\": \"Agent 2 Lambda\",\n        \"metrics\": [\n      \
+          \    [\"AWS/Lambda\", \"Invocations\", \"FunctionName\", \"${Agent2Function}\"\
+          ],\n          [\"AWS/Lambda\", \"Errors\", \"FunctionName\", \"${Agent2Function}\"\
+          ],\n          [\"AWS/Lambda\", \"Duration\", \"FunctionName\", \"${Agent2Function}\"\
+          ]\n        ],\n        \"region\": \"${AWS::Region}\",\n        \"period\"\
+          : 300\n      }\n    },\n    {\n      \"type\": \"metric\",\n      \"x\"\
+          : 0, \"y\": 6, \"width\": 12, \"height\": 6,\n      \"properties\": {\n\
+          \        \"title\": \"API Gateway\",\n        \"metrics\": [\n         \
+          \ [\"AWS/ApiGateway\", \"Count\", \"ApiName\", \"kirospec-studio\"],\n \
+          \         [\"AWS/ApiGateway\", \"4XXError\", \"ApiName\", \"kirospec-studio\"\
+          ],\n          [\"AWS/ApiGateway\", \"5XXError\", \"ApiName\", \"kirospec-studio\"\
+          ],\n          [\"AWS/ApiGateway\", \"Latency\", \"ApiName\", \"kirospec-studio\"\
+          ]\n        ],\n        \"region\": \"${AWS::Region}\",\n        \"period\"\
+          : 300\n      }\n    },\n    {\n      \"type\": \"metric\",\n      \"x\"\
+          : 12, \"y\": 6, \"width\": 12, \"height\": 6,\n      \"properties\": {\n\
+          \        \"title\": \"DynamoDB\",\n        \"metrics\": [\n          [\"\
+          AWS/DynamoDB\", \"ConsumedReadCapacityUnits\", \"TableName\", \"kirospec-specs\"\
+          ],\n          [\"AWS/DynamoDB\", \"ConsumedWriteCapacityUnits\", \"TableName\"\
+          , \"kirospec-specs\"]\n        ],\n        \"region\": \"${AWS::Region}\"\
+          ,\n        \"period\": 300\n      }\n    }\n  ]\n}\n"
+  PipelineFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: kirospec-pipeline-failures
+      AlarmDescription: Triggers when the pipeline fails
+      Namespace: AWS/States
+      MetricName: ExecutionsFailed
+      Dimensions:
+      - Name: StateMachineArn
+        Value:
+          Ref: KiroSpecPipeline
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+      - Ref: AlertsTopic
+  Agent2ErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: kirospec-agent2-errors
+      AlarmDescription: Triggers when Agent 2 Lambda has errors
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value:
+          Ref: Agent2Function
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+      - Ref: AlertsTopic
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: kirospec-alerts
+      DisplayName: KiroSpec Studio Alerts
   Agent1Function:
     Type: AWS::Serverless::Function
     Properties:
@@ -185,3 +263,7 @@ Outputs:
     Description: Step Functions state machine ARN
     Value:
       Ref: KiroSpecPipeline
+  AlertsTopicArn:
+    Description: SNS topic for alerts (subscribe your email to receive notifications)
+    Value:
+      Ref: AlertsTopic
